@@ -1,0 +1,13 @@
+<h1>Login</h1>
+<hr>
+<% if(typeof error != 'undefined') { %>
+    <div style="background-color: red; padding: 5px; color: #ffffff;">
+        <%= error %>
+    </div>
+<% } %>
+
+<form action="/auth/login" method="post">
+    <input type="text" name="username" placeholder="username" value="<%= typeof formData != 'undefined' ? formData.username : '' %>"> <br>
+    <input type="password" name="password" placeholder="password"> <br>
+    <button type="submit">Login</button>
+</form>

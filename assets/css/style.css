@@ -1,0 +1,23 @@
+body {
+    background-color: rgb(249, 255, 254);
+    color: rgb(94, 78, 78);
+}
+
+nav {
+    margin-bottom: 10px;
+}
+
+nav a {
+    margin: 5px;
+}
+
+.alert-danger {
+    background-color: red; 
+    padding: 5px; 
+    color: #ffffff;
+}
+.alert-info {
+    background-color: rgb(41, 166, 249); 
+    padding: 5px;
+    color: #ffffff;
+}

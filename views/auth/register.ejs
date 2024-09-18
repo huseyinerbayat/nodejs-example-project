@@ -1,0 +1,20 @@
+<h1>Register</h1>
+<hr>
+<% if(typeof errors != 'undefined' && errors.length > 0) { %>
+    <div class="alert-danger">
+        <ul>
+    <% for(let error of errors) { %>
+       <li> <%= error.msg %></li>
+    <% } %>
+</ul>
+    </div>
+<% } %>
+
+<form action="/auth/register" enctype="multipart/form-data" method="post">
+    <input type="text" name="username" placeholder="username" value="<%= typeof formData != 'undefined' ? formData.username : '' %>"> <br>
+    <input type="text" name="email" placeholder="email" value="<%= typeof formData != 'undefined' ? formData.email : '' %>"> <br>
+    <input type="password" name="password" placeholder="password"> <br>
+    <input type="password" name="passwordConfirmation" placeholder="repassword"> <br>
+    <input type="file" name="avatar"> <br>
+    <button type="submit">Register</button>
+</form>
