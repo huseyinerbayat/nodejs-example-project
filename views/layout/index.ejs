@@ -4,31 +4,40 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><%= typeof title != 'undefined' ? title : 'No Title' %> | Nodejs Start</title>
+    <link rel="stylesheet" href="../assets/bootstrap/css/bootstrap.min.css">
     <link rel="stylesheet" href="../assets/css/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
 </head>
 <body>
     <nav>
-        <a href="/">Home Page</a>
-        <a href="/contact">Contact</a>
-        <% if(session.username)  {%>
-            <a href="/auth/logout">Logout</a>
+        <a href="/">Ana Sayfa</a>
+        
+        <a href="/pokemons">Pokemonlar</a>
+        <a href="/contact">İletişim</a>
+
+        <% if(session.user)  {%>
+            <a href="/auth/logout">Oturumu Kapat</a>
         <% } else { %>
-            <a href="/auth/login">Login</a>
-            <a href="/auth/register">Register</a>
+            <a href="/auth/login">Giriş</a>
+            <a href="/auth/register">Kayıt</a>
         <% } %>
     </nav>
-    <% if(session.username)  {%>
-        <div class="alert-info">
-            <h3>Welcome, <%= session.username %></h3>
+    <% if(session.user)  { %>
+        <div class="row mb-2" style="padding-left: 5px; padding-right: 5px;">
+            <div class="col-12">
+                <div class="alert-info">
+                    <h3>Hoşgeldin, <%= session.user.username %></h3>
+                </div>
+            </div>
         </div>
     <% } %>
     <%- body %>
 
-
-
     <hr>
     <% var randomNumber = Math.floor(Math.random() * 100); %>
-    <h3><%= randomNumber %> + 1 = <%= plusOne(randomNumber) %></h3>
+    <!-- <h3><%= randomNumber %> + 1 = <%= plusOne(randomNumber) %></h3> -->
     
+    <script src="../assets/bootstrap/js/bootstrap.min.js"></script>
 </body>
 </html>

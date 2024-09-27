@@ -7,13 +7,20 @@
     "start": "node app.js",
     "dev": "NODE_ENV=development nodemon app.js",
     "prod": "NODE_ENV=production node app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "migrate": "npx sequelize-cli db:migrate",
+    "migrate:undo": "npx sequelize-cli db:migrate:undo",
+    "migrate:undo:all": "npx sequelize-cli db:migrate:undo:all",
+    "seed:all": "npx sequelize-cli db:seed:all",
+    "command": "node console/index.js"
   },
   "type": "module",
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "commander": "^12.1.0",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.10",
     "express": "^4.19.2",
@@ -22,6 +29,10 @@
     "express-session": "^1.18.0",
     "express-validator": "^7.2.0",
     "mysql2": "^3.11.3",
+    "node-cron": "^3.0.3",
+    "pokedex-promise-v2": "^4.2.0",
+    "sequelize": "^6.37.3",
+    "sequelize-cli": "^6.6.2",
     "slugify": "^1.6.6"
   }
 }

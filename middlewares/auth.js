@@ -1,5 +1,5 @@
 export const authMiddleware = (req, res, next) => {
-    if (req.session.username) {
+    if (req.session.user) {
         res.redirect('/')
     }
     next()

@@ -1,0 +1,359 @@
+<div class="row" style="border: 2px dashed blueviolet; padding: 5px;">
+    <div class="col-3 d-none d-sm-block">
+        <div class="mb-3">
+            <button class="btn-game" onclick="startTrialGame()">
+                DENEME OYUNU
+            </button>
+            <% tours.slice(0, 15).forEach(function(tour, index)  { %>
+                <button class="btn-game" onclick="startRealGame('<%= tour.day %>', <%= tour.Scores?.length %>)">
+                    OYUN <%= tour.day%> <img class="<%= !tour.Scores?.length ? 'd-none' : '' %>" src="../assets/img/lock.png" style="height: 28px;" alt="lock">
+                </button>
+            <% }) %>
+        </div>
+    </div>
+    <div class="col-lg-6 col-md-6 col-12 position-relative">
+        <div id="overlay" class="d-flex justify-content-center align-items-center memory-game-overlay">
+                <div class="row p-4">
+                    <div class="col-12 mb-3 rules-container">
+                        <div id="trial-game-rules">
+                            <h3 class="text-center">OYUN KURALLARI</h3>
+                            <hr class="mt-1 mb-2">
+                            <ul>
+                                <li class="rule-li">Bu bir <strong>deneme oyunu</strong>dur.</li>
+                                <li class="rule-li">Deneme oyununun oynanmasında sayı sınırı yoktur.</li>
+                                <li class="rule-li">Gerçek oyun bölümleri her gün 1 defa oynanır.</li>
+                                <li class="rule-li">Deneme oyunlarında kazanılan puanlar sıralamanızı etkilemez.</li>
+                                <li class="rule-li">Gerçek oyun bölümlerinde aldığınız puanlar gün sonunda toplanarak sıralamanız hesaplanır.</li>
+                            </ul>
+                        </div>
+                        <div id="real-game-rules" class="d-none">
+                            <h3 class="text-center">OYUN KURALLARI</h3>
+                            <hr class="mt-1 mb-2">
+                            <ul>
+                                <li class="rule-li">Bu bir <strong>gerçek oyun bölümü</strong>dür. (OYUN <span id="tourNumber"></span>)</li>
+                                <li class="rule-li">Her güne ait bir gerçek oyun bölümü vardır.</li>
+                                <li class="rule-li">Bir gerçek oyun bölümü bir defa oynanabilir.</li>
+                                <li class="rule-li">Sadece bulunduğumuz aydaki gerçek oyun bölümleri oynanabilir.</li>
+                                <li class="rule-li">Sadece bulunduğumuz aydaki güne kadar olan <strong>oynanmamış</strong> gerçek oyun bölümlerine ulaşabilirsiniz.</li>
+                                <li class="rule-li">Gerçek oyun bölümlerinde aldığınız puanlar gün sonunda toplanarak sıralamanız hesaplanır.</li>
+                                <li class="rule-li text-danger">Oyun başladıktan sonra sayfayı yenilerseniz bu bölümden maalesef puan alamayacaksınız.</li>
+                            </ul>
+                        </div>
+                    </div>
+        
+                    <div class="col-12 text-center">
+                        <button class="btn btn-primary start-game-btn" onclick="startGame()">OYUNU BAŞLAT</button>
+                    </div>
+                </div>
+            
+        </div>
+        <div class="mb-3">
+            <div class="row mb-2">
+                <div class="col-6 ">
+                    <div class="d-flex justify-content-center align-items-center" 
+                        style="height: 40px; width: 160px; background-color: rgb(9, 95, 98); color: #ffffff;">
+                        PUAN: &nbsp; <span id="score">180</span>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="pokemonsRow">
+                <% trialGamePokemons.forEach(function(pokemon, index) { %>
+                    <div class="col-3 mb-1" onclick="selectPokemon('<%= index+1 %>')">
+                        <div class="card game-card d-flex justify-content-center align-items-center">
+                            <img src="<%= pokemon.img_url %>" id="pokemon_<%= index+1 %>" class="d-none game-card-img" alt="<%= pokemon.name %>">
+                            <img src="../assets/img/pokemon-logo.png" id="pokemon_logo_<%= index+1 %>" class="game-card-img" alt="<%= pokemon.name %>">
+                        </div>
+                    </div>
+                <% }) %>
+            </div>
+        </div>
+    </div>
+    <div class="col-3 d-none d-sm-block">
+        <div class="mb-3">
+            <% tours.slice(15, 31).forEach(function(tour, index)  { %>
+                <button class="btn-game" onclick="startRealGame('<%= tour.day %>', <%= tour.Scores?.length %>)">
+                    OYUN <%= tour.day%> <img class="<%= !tour.Scores?.length ? 'd-none' : '' %>" src="../assets/img/lock.png" style="height: 28px;" alt="lock">
+                </button>
+            <% }) %>
+        </div>
+    </div>
+</div>
+<script>
+    var isAuth = <%= session.user ? true : false %>
+    var contiuningGame = false
+    var scoreInterval = null
+    var isTrialGame = true
+    var selectedRealGameTourId = null
+    const startTime = 180
+    var score = startTime
+    var pokemons = [
+        <% trialGamePokemons.forEach(function(pokemon, index) { %>
+            {id: <%= index+1 %>, slug: '<%= pokemon.slug %>', img_url: '<%= pokemon.img_url %>', is_matched: false},
+        <% }) %>
+    ]
+
+    let pokemonsRow = document.getElementById('pokemonsRow')
+    
+    let openedPokemons = []
+    let matchedPokemons = []
+
+    function selectPokemon(selectedPokemonId) {
+        const notMatchedPokemon = pokemons.find(item => (item.id == selectedPokemonId && !item.is_matched))
+        const openedPokemon = openedPokemons.find(item => item.id == selectedPokemonId)
+        if(!notMatchedPokemon || openedPokemon) {
+            console.log('zaten seçili veya eşleşmiş');
+            return;
+        }
+
+        openedPokemons.push(notMatchedPokemon)
+        
+        document.getElementById('pokemon_' + selectedPokemonId).classList.remove('d-none')
+        document.getElementById('pokemon_logo_' + selectedPokemonId).classList.add('d-none')
+
+        if(openedPokemons.length === 2) {
+
+            const firstPokemon = openedPokemons[0]
+            const secondPokemon = openedPokemons[1]
+
+            if(firstPokemon.slug === secondPokemon.slug) {
+                matchedPokemons.push(firstPokemon.slug)
+                matchedPokemons.push(secondPokemon.slug)
+
+                pokemons[firstPokemon.id - 1].is_matched = true
+                pokemons[secondPokemon.id - 1].is_matched = true
+
+            } else {
+                setTimeout(function() {
+                    document.getElementById('pokemon_' + firstPokemon.id).classList.add('d-none')
+                    document.getElementById('pokemon_' + secondPokemon.id).classList.add('d-none')
+
+                    document.getElementById('pokemon_logo_' + firstPokemon.id).classList.remove('d-none')
+                    document.getElementById('pokemon_logo_' + secondPokemon.id).classList.remove('d-none')
+                }, 500)
+            
+            }
+            
+            openedPokemons = []
+
+        }
+        
+        if(pokemons.every(pokemon => pokemon.is_matched == true)) {
+            console.log('tüm eşleşmeler tamamlandı');
+            
+            finishGame()
+        }
+    }
+
+    async function saveScore() {
+        const response = await fetch('/api/save-score', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Gönderilen veri JSON formatında olduğunu belirtiyoruz
+            },
+            body: JSON.stringify({
+                tourId: selectedRealGameTourId,
+            })
+            
+        })
+
+        const responseJson = await response.json();
+        const statusText = responseJson.status_text
+        const savedScore = responseJson.saved_score
+        
+        if(statusText === 'save_score') {
+            showScoreAlert(savedScore)
+        }
+    }
+
+    async function startGame() {
+        if(contiuningGame) {
+            contiuningGameAlert()
+            return
+        }
+
+        if(!isTrialGame) {
+            // Hangi gerçek oyun bölümünü seçtiyse o bölüme ait pokemonlar geliyor
+            const response = await fetch('/api/start-memory-game/' + selectedRealGameTourId);
+            const responseJson = await response.json();
+            const statusText = responseJson.status_text
+            if(statusText === 'score_created') {
+                pokemons = responseJson.data.map((pokemon, index) => {
+                    return {id: index+1, ...pokemon}
+                })
+            
+                pokemonsRow.innerHTML = getGameRowHTML(pokemons)
+            } else if (statusText === 'already_played') {
+                alreadyPlayedAlert()
+                return
+            } else if (statusText === 'pokemons_not_found') {
+                pokemonsNotFoundAlert()
+                return
+            } else if (statusText === 'not_logged_in') {
+                notLoggedInAlert()
+                return
+            }
+            
+        } else {
+            const response = await fetch('/api/random-pokemons');
+            const randomPokemons = await response.json();
+            pokemons = randomPokemons.map((pokemon, index) => {
+                return {id: index+1, ...pokemon}
+            })
+            
+            pokemonsRow.innerHTML = getGameRowHTML(pokemons)
+        }
+
+        const overlay = document.getElementById('overlay');
+        overlay.classList.add('d-none')
+
+        scoreInterval = setInterval(() => {
+            score--
+            document.getElementById('score').innerHTML = score
+            if(score == 0) {
+                finishGame()
+            }
+        }, 1000)
+    }
+
+    async function finishGame() {
+        clearInterval(scoreInterval)
+        
+        contiuningGame = false
+
+        try {
+
+            if(isTrialGame) {
+                showScoreAlert(score)
+            } else {
+                console.log('bu bir gerçek oyun bölümü');
+                
+                saveScore()
+            }
+            score = startTime
+
+        } catch (error) {
+            console.error('API isteği başarısız oldu:', error);
+        }
+    }
+
+    function getGameRowHTML(pokemons) {
+        const mappedPokemonsHTML = pokemons.map((pokemon, index) => {
+            return '<div class="col-3 mb-1" onclick="selectPokemon('+ (+index+1) + ')">' +
+                        '<div class="card game-card d-flex justify-content-center align-items-center">' +
+                            '<img src="' + pokemon.img_url + '" id="pokemon_'+ (+index+1) +'" class="d-none game-card-img" alt="' + pokemon.slug + '">' +
+                            '<img src="../assets/img/pokemon-logo.png" id="pokemon_logo_'+ (+index+1) +'" class="game-card-img" alt="' + pokemon.slug + '">' +
+                        '</div>' +
+                    '</div>'
+        })
+
+        var rowHTML = ''
+        mappedPokemonsHTML.forEach(pokemon => {
+            rowHTML += pokemon
+        })
+        
+        return rowHTML
+    }
+
+    function startRealGame(id, isAlreadyPlayed) {
+        if(isAlreadyPlayed) {
+            alreadyPlayedAlert()
+            return
+        }
+
+        if(contiuningGame) {
+            contiuningGameAlert()
+            return
+        }
+
+        if(!isAuth) {
+            notLoggedInAlert()
+            return
+        }
+        
+        isTrialGame = false
+        selectedRealGameTourId = id
+        document.getElementById('real-game-rules').classList.remove('d-none')
+        document.getElementById('trial-game-rules').classList.add('d-none')
+        document.getElementById('tourNumber').textContent = id
+        
+        console.log('idli oyun');
+    }
+
+    function startTrialGame() {
+        isTrialGame = true
+        document.getElementById('real-game-rules').classList.add('d-none')
+        document.getElementById('trial-game-rules').classList.remove('d-none')
+    }
+
+
+    function alreadyPlayedAlert() {
+        Swal.fire({
+            title: 'Bilgi',
+            text: 'Bu bölümü daha önceden oynadınız.',
+            icon: 'info',
+            confirmButtonText: 'Tamam',
+        })
+    }
+
+    function showScoreAlert(score = 0) {
+        if(score !== 0) {
+            Swal.fire({
+                title: 'Tebrikler!',
+                text: `Bu bölümden ${score} puan kazandınız.`,
+                icon: 'success',
+                confirmButtonText: 'Tamam',
+            })
+
+        } else {
+            Swal.fire({
+                title: 'Üzgünüz :(',
+                text: `Bu bölümden puan kazanamadınız.`,
+                icon: 'warning',
+                confirmButtonText: 'Tamam',
+            })
+        }
+
+        overlay.classList.remove('d-none') // kuralların olduğu div tekrar görünecek     
+        
+    }
+
+    function pokemonsNotFoundAlert() {
+        Swal.fire({
+            title: 'Hata',
+            text: 'Sizden kaynaklanmayan bir hata oluştu.',
+            icon: 'error',
+            confirmButtonText: 'Tamam',
+        })
+    }
+
+    function notLoggedInAlert() {
+        Swal.fire({
+            title: 'Giriş Yapılmadı',
+            text: 'Bu bölümü oynamak için giriş yapmalısınız.',
+            icon: 'info',
+            showCancelButton: true,
+            confirmButtonText: 'Giriş Yap',
+            cancelButtonText: 'İptal', 
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = '/auth/login'; 
+            }
+        });
+    }
+
+    function contiuningGameAlert() {
+        Swal.fire({
+            title: 'Bilgi',
+            text: 'Devam eden bir oyun var.',
+            icon: 'info',
+            confirmButtonText: 'Tamam',
+        })
+    }
+
+
+    async function test() {
+        // test için, kaldırılacak
+    }
+
+    test()
+</script>
